@@ -26,7 +26,14 @@ public class Main {
         }
         ObjectMapper objectMapper = new ObjectMapper();
         Matrix matrix= new Matrix();
-        Config config = objectMapper.readValue(new File("config.json"), Config.class);
+
+        Config config = objectMapper.readValue(new File(fileName), Config.class);
+        matrix.generateMatrix(config);
+        matrix.calculateWin(betAmount);
+
+        String jsonString = objectMapper.writeValueAsString(matrix.getAnswer());
+        System.out.println( jsonString);
+
     }
 
 }

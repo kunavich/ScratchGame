@@ -10,6 +10,7 @@ import java.util.*;
 public class Matrix {
 
     private String[][] matrix;
+    private List<String> bonuses;
     private Map<String,Integer> symbolAmounts;
     private Answer answer;
     private Config config;
@@ -17,6 +18,7 @@ public class Matrix {
     public void generateMatrix(Config config) {
         matrix = new String[config.getColumns()][config.getRows()];
         symbolAmounts = new HashMap<>();
+        bonuses = new ArrayList<>();
         this.config=config;
 
         List<StandardSymbol> cells = config.getProbabilities().getStandard_symbols();
@@ -41,7 +43,11 @@ public class Matrix {
         answer = new Answer(matrix);
     }
 
-    public double calculateWin(double betAmount) {
+    public Answer getAnswer(){
+        return answer;
+    }
+
+    public void calculateWin(double betAmount) {
         double reward=0;
         Map<String, WinCombination> wins = config.getWin_combinations();
         for (Map.Entry<String, Integer> entry : symbolAmounts.entrySet()) {
@@ -82,8 +88,21 @@ public class Matrix {
                 reward += symbolReward;
             }
         }
+        if(reward!=0) {
+            for (String bonus : bonuses) {
+                if (bonus.equals("MISS")) {
+                    continue;
+                }
+                answer.getApplied_bonus_symbol().add(bonus);
+                if (reward != 0 && config.getSymbols().get(bonus).getImpact().equals("multiply_reward")) {
+                    reward *= config.getSymbols().get(bonus).getReward_multiplier();
+                }
+                if (reward != 0 && config.getSymbols().get(bonus).getImpact().equals("extra_bonus")) {
+                    reward += config.getSymbols().get(bonus).getExtra();
+                }
+            }
+        }
         answer.setReward(reward);
-        return reward;
     }
 
     private boolean isBonus(int standardProbability){
@@ -107,6 +126,7 @@ public class Matrix {
         for (Map.Entry<String, Integer> entry : probabilities.entrySet()) {
             cumulativeProbability += ((double) entry.getValue()/bonusProbabilitySum);
             if (randomValue <= cumulativeProbability) {
+                bonuses.add(entry.getKey());
                 return entry.getKey();
             }
         }
