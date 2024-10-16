@@ -131,9 +131,52 @@ class MatrixTest {
         assertEquals(500000.0,matrix.getAnswer().getReward());
         assertTrue(areArraysEqual(expectedWinCombinations,matrix.getAnswer().getApplied_winning_combinations().get("A").toArray(new String[2])));
     }
+    @Test
+    void calculateWinWithGuarantiedDiagonal() {
+        fileName="configTestGuarantiedDiagonal.json";
+        Config config;
+        try {
+            config = objectMapper.readValue(new File(filePrefix+fileName), Config.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        matrix.generateMatrix(config);
+        matrix.calculateWin(betAmount);
+        String[] expectedWinCombinations = new String[]{"same_symbol_3_times","same_symbols_diagonally_left_to_right" };
+        assertEquals(1250000.0,matrix.getAnswer().getReward());
+        assertTrue(areArraysEqual(expectedWinCombinations,matrix.getAnswer().getApplied_winning_combinations().get("A").toArray(new String[2])));
+    }
+    @Test
+    void calculateWinWithGuarantiedDiagonalWithBonus() {
+        fileName="configTestGuarantiedDiagonalWithBonus.json";
+        Config config;
+        try {
+            config = objectMapper.readValue(new File(filePrefix+fileName), Config.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        matrix.generateMatrix(config);
+        matrix.calculateWin(betAmount);
+        String[] expectedWinCombinations = new String[]{"same_symbol_3_times","same_symbols_diagonally_left_to_right" };
+        String[] expectedBonuses = new String[]{"+1000"};
+        assertEquals(1251000.0,matrix.getAnswer().getReward());
+        assertTrue(areArraysEqual(expectedWinCombinations,matrix.getAnswer().getApplied_winning_combinations().get("A").toArray(new String[2])));
+        assertTrue(areArraysEqual(expectedBonuses,matrix.getAnswer().getApplied_bonus_symbol().toArray(new String[1])));
+    }
 
-
-
+    @Test
+    void calculateWinWith4x4Matrix() {
+        fileName="configTest4x4.json";
+        Config config;
+        try {
+            config = objectMapper.readValue(new File(filePrefix+fileName), Config.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        matrix.generateMatrix(config);
+        matrix.calculateWin(betAmount);
+        assertTrue(matrix.getAnswer().getReward()>0);
+    }
 
     private boolean areMatricesEqual(String[][] matrix1, String[][] matrix2) {
         if (matrix1.length != matrix2.length) {
